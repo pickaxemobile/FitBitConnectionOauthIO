@@ -8,6 +8,7 @@ import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import com.google.gson.Gson;
 import io.oauth.OAuth;
 import io.oauth.OAuthCallback;
 import io.oauth.OAuthData;
@@ -31,6 +32,7 @@ public class ConnectionActivity extends Activity implements OAuthCallback {
     private TextView nameTextView;
     private TextView stepGoalTextView;
     private static String TAG = "FITBIT";
+    private OAuthData myOauthData = null;
 
 
     @Override
@@ -40,9 +42,19 @@ public class ConnectionActivity extends Activity implements OAuthCallback {
         nameTextView = (TextView)findViewById(R.id.name);
         stepGoalTextView = (TextView)findViewById(R.id.stepGoal);
 
+        getPreferences();
 
     }
 
+    public void getPreferences(){
+
+    }
+
+    public void setPreferences(){
+        Gson gson = new Gson();
+        String json = gson.toJson(myOauthData);
+        Log.d(TAG, "json: " + json);
+    }
 
     public void connect(View v){
         final OAuth oauth = new OAuth(this);
@@ -58,7 +70,9 @@ public class ConnectionActivity extends Activity implements OAuthCallback {
             nameTextView.setTextColor(Color.parseColor("#FF0000"));
             nameTextView.setText("error, " + data.error);
         }
-        Log.d(MyFitbitConnectionTest.TAG, "data provider: " + data.provider + " data http" + data.request.toString());
+        myOauthData = data;
+        setPreferences();
+        //Log.d(MyFitbitConnectionTest.TAG, "data provider: " + data.provider + " data http" + data.request.toString());
             // You can access the tokens through data.token and data.secret
 
 
