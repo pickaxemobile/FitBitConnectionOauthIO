@@ -1,10 +1,11 @@
 package com.pickaxemobile.fitbitconnectiontest;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -12,13 +13,6 @@ import io.oauth.OAuth;
 import io.oauth.OAuthCallback;
 import io.oauth.OAuthData;
 import io.oauth.OAuthRequest;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -33,20 +27,60 @@ public class ConnectionActivity extends Activity implements OAuthCallback
     private TextView stepGoalTextView;
     private static String TAG = "FITBIT";
 
+    OAuthData data1 = null;
+    private SharedPreferences pref;
+    String myProvider, myState, myToken, mySecret, myStatus, myExpires_in, myError, myRequest;
+
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         nameTextView = (TextView)findViewById(R.id.name);
-        stepGoalTextView = (TextView)findViewById(R.id.stepGoal);
+        stepGoalTextView = (TextView) findViewById(R.id.stepGoal);
+
+        pref = PreferenceManager.getDefaultSharedPreferences(this);
+        myProvider = "";
+        myState = "";
+        myToken = "";
+        mySecret = "";
+        myStatus = "";
+        myExpires_in = "";
+        myError = "";
+        myRequest = "";
+
+        loadOAuthData();
     }
 
     public void connect(View v)
     {
-        final OAuth oauth = new OAuth(this);
-        oauth.initialize(MyFitbitConnectionTest.OAUTH_IO_PUBLIC_KEY);
-        oauth.popup("fitbit", ConnectionActivity.this);
+        if(myProvider.equalsIgnoreCase(""))
+        {
+            final OAuth oauth = new OAuth(this);
+            oauth.initialize(MyFitbitConnectionTest.OAUTH_IO_PUBLIC_KEY);
+            oauth.popup("fitbit", ConnectionActivity.this);
+        }
+        else
+        {
+            data1.provider = myProvider;
+            data1.state = myState;
+            data1.token = myToken;
+            data1.secret = mySecret;
+            data1.status = myStatus;
+            data1.expires_in = myExpires_in;
+            data1.error = myError;
+            try
+            {
+                data1.request = new JSONObject(myRequest);
+            }
+            catch (JSONException e)
+            {
+                Log.e(MyFitbitConnectionTest.TAG, "json error: " + e.getLocalizedMessage());
+            }
+            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().build());
+            getProfileData(data1);
+            getGoalData(data1);
+        }
     }
 
     public void onFinished(OAuthData data)
@@ -56,6 +90,18 @@ public class ConnectionActivity extends Activity implements OAuthCallback
             nameTextView.setTextColor(Color.parseColor("#FF0000"));
             nameTextView.setText("error, " + data.error);
         }
+
+        myProvider = data.provider;
+        myState = data.state;
+        myToken = data.token;
+        mySecret = data.secret;
+        myStatus = data.status;
+        myExpires_in = data.expires_in;
+        myError = data.error;
+        myRequest = data.request.toString();
+
+        saveOAuthData();
+
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().build());
 
         getProfileData(data);
@@ -191,5 +237,31 @@ public class ConnectionActivity extends Activity implements OAuthCallback
                 nameTextView.setText("error: " + message);
             }
         });
+    }
+
+    public void saveOAuthData()
+    {
+        SharedPreferences.Editor edit = pref.edit();
+        edit.putString("myProvider", myProvider);
+        edit.putString("myState", myState);
+        edit.putString("myToken", myToken);
+        edit.putString("mySecret", mySecret);
+        edit.putString("myStatus", myStatus);
+        edit.putString("myExpires_in", myExpires_in);
+        edit.putString("myError", myError);
+        edit.putString("myRequest", myRequest);
+        edit.apply();
+    }
+
+    public void loadOAuthData()
+    {
+        myProvider = pref.getString("myProvider", "");
+        myState = pref.getString("myState", "");
+        myToken = pref.getString("myToken", "");
+        mySecret = pref.getString("mySecret", "");
+        myStatus = pref.getString("myStatus", "");
+        myExpires_in = pref.getString("myExpires_in", null);
+        myError = pref.getString("myError", null);
+        myRequest = pref.getString("myRequest", "");
     }
 }
