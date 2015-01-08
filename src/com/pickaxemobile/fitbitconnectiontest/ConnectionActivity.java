@@ -32,15 +32,13 @@ public class ConnectionActivity extends Activity implements OAuthCallback {
     private TextView stepGoalTextView;
     private static String TAG = "FITBIT";
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         nameTextView = (TextView)findViewById(R.id.name);
         stepGoalTextView = (TextView)findViewById(R.id.stepGoal);
-
-
+        
     }
 
 
