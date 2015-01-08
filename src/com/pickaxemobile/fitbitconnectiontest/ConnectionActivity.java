@@ -22,8 +22,7 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -40,6 +39,8 @@ public class ConnectionActivity extends Activity implements OAuthCallback
         setContentView(R.layout.main);
         nameTextView = (TextView)findViewById(R.id.name);
         stepGoalTextView = (TextView)findViewById(R.id.stepGoal);
+
+        loadOAuthData();
     }
 
     public void connect(View v)
@@ -56,6 +57,9 @@ public class ConnectionActivity extends Activity implements OAuthCallback
             nameTextView.setTextColor(Color.parseColor("#FF0000"));
             nameTextView.setText("error, " + data.error);
         }
+
+        saveOAuthData(data);
+
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().build());
 
         getProfileData(data);
@@ -191,5 +195,71 @@ public class ConnectionActivity extends Activity implements OAuthCallback
                 stepGoalTextView.setText("error: " + message);
             }
         });
+    }
+
+    public void saveOAuthData(OAuthData data)
+    {
+        ObjectOutputStream objectOut = null;
+        try
+        {
+            FileOutputStream fileOut = openFileOutput("myFile", MODE_PRIVATE);
+            objectOut = new ObjectOutputStream(fileOut);
+            objectOut.writeObject(data);
+            fileOut.getFD().sync();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        finally
+        {
+            if (objectOut != null)
+            {
+                try
+                {
+                    objectOut.close();
+                }
+                catch (IOException e)
+                {
+                }
+            }
+        }
+    }
+
+    public OAuthData loadOAuthData()
+    {
+        ObjectInputStream objectIn = null;
+        OAuthData data = null;
+        try
+        {
+            FileInputStream fileIn = openFileInput("myFile");
+            objectIn = new ObjectInputStream(fileIn);
+            data = (OAuthData) objectIn.readObject();
+        }
+        catch (FileNotFoundException e)
+        {
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        catch (ClassNotFoundException e)
+        {
+            e.printStackTrace();
+        }
+        finally
+        {
+            if (objectIn != null)
+            {
+                try
+                {
+                    objectIn.close();
+                }
+                catch (IOException e)
+                {
+                }
+            }
+        }
+        return data;
     }
 }
