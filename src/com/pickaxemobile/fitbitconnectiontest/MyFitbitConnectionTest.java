@@ -5,6 +5,6 @@ package com.pickaxemobile.fitbitconnectiontest;
  */
 
 public class MyFitbitConnectionTest {
-    public static final String OAUTH_IO_PUBLIC_KEY = "[INPUT YOUR OAUTH.IO PUBLIC KEY HERE]";
+    public static final String OAUTH_IO_PUBLIC_KEY = "";
     public static final String TAG = "FITBIT";
 }
