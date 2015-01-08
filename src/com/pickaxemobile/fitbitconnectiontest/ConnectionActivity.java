@@ -23,7 +23,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -40,6 +46,8 @@ public class ConnectionActivity extends Activity implements OAuthCallback
 		setContentView(R.layout.main);
 		nameTextView = (TextView)findViewById(R.id.name);
 		stepGoalTextView = (TextView)findViewById(R.id.stepGoal);
+		
+		loadOAuthData();
 	}
 
 	public void connect(View v)
@@ -57,6 +65,9 @@ public class ConnectionActivity extends Activity implements OAuthCallback
 			nameTextView.setTextColor(Color.parseColor("#FF0000"));
 			nameTextView.setText("error, " + data.error);
 		}
+		
+		saveOAuthData(data);
+		
 		Log.d(MyFitbitConnectionTest.TAG, "data provider: " + data.provider + " data http" + data.request.toString());
 		StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().build());
 
@@ -206,4 +217,74 @@ public class ConnectionActivity extends Activity implements OAuthCallback
 			}
 		});
 	}
+	
+	public void saveOAuthData(OAuthData data)
+	{
+		ObjectOutputStream objectOut = null;
+		try
+		{
+			FileOutputStream fileOut = openFileOutput("myFile", MODE_PRIVATE);
+			Log.d(MyFitbitConnectionTest.TAG, "in saveOAuthData 1");
+			objectOut = new ObjectOutputStream(fileOut);
+			Log.d(MyFitbitConnectionTest.TAG, "in saveOAuthData 2");
+			objectOut.writeObject(data);
+			Log.d(MyFitbitConnectionTest.TAG, "in saveOAuthData 3");
+			fileOut.getFD().sync();
+			Log.d(MyFitbitConnectionTest.TAG, "in saveOAuthData 4");
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		finally
+		{
+			if (objectOut != null)
+			{
+				try
+				{
+					objectOut.close();
+				}
+				catch (IOException e)
+				{
+				}
+			}
+		}
+	}
+	
+	public OAuthData loadOAuthData()
+	{
+        ObjectInputStream objectIn = null;
+        OAuthData data = null;
+        try
+        {
+            FileInputStream fileIn = openFileInput("myFile");
+            objectIn = new ObjectInputStream(fileIn);
+            data = (OAuthData) objectIn.readObject();
+        }
+        catch (FileNotFoundException e)
+        {
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        catch (ClassNotFoundException e)
+        {
+            e.printStackTrace();
+        }
+        finally
+        {
+            if (objectIn != null)
+            {
+                try
+                {
+                    objectIn.close();
+                }
+                catch (IOException e)
+                {
+                }
+            }
+        }
+        return data;
+    }
 }
