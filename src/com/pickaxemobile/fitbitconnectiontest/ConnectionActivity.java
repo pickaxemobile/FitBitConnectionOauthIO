@@ -27,150 +27,169 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 
-public class ConnectionActivity extends Activity implements OAuthCallback {
+public class ConnectionActivity extends Activity implements OAuthCallback
+{
     private TextView nameTextView;
     private TextView stepGoalTextView;
     private static String TAG = "FITBIT";
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         nameTextView = (TextView)findViewById(R.id.name);
         stepGoalTextView = (TextView)findViewById(R.id.stepGoal);
-        
     }
 
-
-    public void connect(View v){
+    public void connect(View v)
+    {
         final OAuth oauth = new OAuth(this);
-       // Log.d(TAG, "pub key: " + MyFitbitConnectionTest.OAUTH_IO_PUBLIC_KEY);
-        oauth.initialize(MyFitbitConnectionTest.OAUTH_IO_PUBLIC_KEY); //OAuth.io public key, not Fitbit's
+        oauth.initialize(MyFitbitConnectionTest.OAUTH_IO_PUBLIC_KEY);
         oauth.popup("fitbit", ConnectionActivity.this);
-        //TODO seems bad to return to main activity with callback
     }
 
-    public void onFinished(OAuthData data) {
-        Log.d(MyFitbitConnectionTest.TAG, "in on finished, data: "+ data.toString());
-        if ( ! data.status.equals("success")) {
+    public void onFinished(OAuthData data)
+    {
+        if ( ! data.status.equals("success"))
+        {
             nameTextView.setTextColor(Color.parseColor("#FF0000"));
             nameTextView.setText("error, " + data.error);
         }
-        Log.d(MyFitbitConnectionTest.TAG, "data provider: " + data.provider + " data http" + data.request.toString());
-            // You can access the tokens through data.token and data.secret
-
-
-            // Let's skip the NetworkOnMainThreadException for the purpose of this sample.
-
-        //TODO definitely have to make this async
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().build());
 
-            // To make an authenticated request, you can implement OAuthRequest with your preferred way.
-            // Here, we use an URLConnection (HttpURLConnection) but you can use any library.
         getProfileData(data);
         getGoalData(data);
     }
 
-    private void getProfileData(OAuthData data){
-        data.http(data.provider.equals("fitbit") ? "/1/user/-/profile.json" : "/1.1/account/verify_credentials.json", new OAuthRequest() {
+    private void getProfileData(OAuthData data)
+    {
+        data.http(data.provider.equals("fitbit") ? "/1/user/-/profile.json" : "/1.1/account/verify_credentials.json", new OAuthRequest()
+        {
             private URL url;
             private URLConnection con;
 
             @Override
-            public void onSetURL(String _url) {
-                Log.d(MyFitbitConnectionTest.TAG, "onsetURL url:" + _url);
-
-                try {
+            public void onSetURL(String _url)
+            {
+                try
+                {
                     url = new URL(_url);
                     con = url.openConnection();
-                } catch (Exception e) { e.printStackTrace(); }
+                }
+                catch(Exception e)
+                {
+                    e.printStackTrace();
+                }
             }
 
             @Override
-            public void onSetHeader(String header, String value) {
+            public void onSetHeader(String header, String value)
+            {
                 con.addRequestProperty(header, value);
             }
 
             @Override
-            public void onReady() {
+            public void onReady()
+            {
                 StringBuilder total = new StringBuilder();
                 String line = "";
-                Log.d(MyFitbitConnectionTest.TAG, "onReady() back from call");
-                try {
+                try
+                {
                     BufferedReader r = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                    while ((line = r.readLine()) != null) {
+                    while ((line = r.readLine()) != null)
+                    {
                         total.append(line);
                     }
-                    Log.d(MyFitbitConnectionTest.TAG, "onReady() total: " + total);
-                } catch (Exception e) { e.printStackTrace(); }
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
 
-                try {
+                try
+                {
                     JSONObject result = new JSONObject(total.toString());
                     JSONObject user = result.getJSONObject("user");
                     nameTextView.setText(user.getString("displayName"));
 
-                } catch (JSONException e){
+                }
+                catch (JSONException e)
+                {
                     Log.e(MyFitbitConnectionTest.TAG, "json error: " + e.getLocalizedMessage());
                 }
             }
 
             @Override
-            public void onError(String message) {
+            public void onError(String message)
+            {
                 nameTextView.setText("error: " + message);
             }
         });
     }
 
-    private void getGoalData(OAuthData data){
-        data.http(data.provider.equals("fitbit") ? "/1/user/-/activities/goals/daily.json" : "/1.1/account/verify_credentials.json", new OAuthRequest() {
+    private void getGoalData(OAuthData data)
+    {
+        data.http(data.provider.equals("fitbit") ? "/1/user/-/activities/goals/daily.json" : "/1.1/account/verify_credentials.json", new OAuthRequest()
+        {
             private URL url;
             private URLConnection con;
 
             @Override
-            public void onSetURL(String _url) {
-                Log.d(MyFitbitConnectionTest.TAG, "onsetURL url:" + _url);
-
-                try {
+            public void onSetURL(String _url)
+            {
+                try
+                {
                     url = new URL(_url);
                     con = url.openConnection();
-                } catch (Exception e) { e.printStackTrace(); }
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
             }
 
             @Override
-            public void onSetHeader(String header, String value) {
+            public void onSetHeader(String header, String value)
+            {
                 con.addRequestProperty(header, value);
             }
 
             @Override
-            public void onReady() {
+            public void onReady()
+            {
                 StringBuilder total = new StringBuilder();
                 String line = "";
-                Log.d(MyFitbitConnectionTest.TAG, "onReady() back from call");
-                try {
+                try
+                {
                     BufferedReader r = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                    while ((line = r.readLine()) != null) {
+                    while ((line = r.readLine()) != null)
+                    {
                         total.append(line);
                     }
-                    Log.d(MyFitbitConnectionTest.TAG, "onReady() total: " + total);
-                } catch (Exception e) { e.printStackTrace(); }
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
 
-                try {
+                try
+                {
                     JSONObject result = new JSONObject(total.toString());
                     JSONObject goals = result.getJSONObject("goals");
                     stepGoalTextView.setText(goals.getString("steps"));
-
-                } catch (JSONException e){
+                }
+                catch (JSONException e)
+                {
                     Log.e(MyFitbitConnectionTest.TAG, "json error: " + e.getLocalizedMessage());
                 }
             }
 
             @Override
-            public void onError(String message) {
-                nameTextView.setText("error: " + message);
+            public void onError(String message)
+            {
+                stepGoalTextView.setText("error: " + message);
             }
         });
     }
-
-
-
-    }
+}
